@@ -1,0 +1,1 @@
+- Les trois codes clients strictement en double (T00101, T01501, T03211) sont fusionnés en un seul enregistrement, les lignes étant identiques. C'est pour ça que la base contient 4 994 clients et non 4 997.
