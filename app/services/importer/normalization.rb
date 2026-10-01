@@ -13,9 +13,20 @@ module Importer::Normalization
     cleaned = value.to_s.strip
     country_code == "FR" ? cleaned.rjust(5, "0") : cleaned
   end
+  
+  COUNTRY_CODES = {
+  "FR"        => "FR",
+  "FRANCE"    => "FR",
+  "BE"        => "BE",
+  "BELGIQUE"  => "BE",
+  "DE"        => "DE",
+  "ALLEMAGNE" => "DE"
+}.freeze
 
   def country_code(value)
-    value.to_s.strip[0, 2].upcase
+    return nil if value.blank?
+
+    COUNTRY_CODES[value.to_s.strip.upcase]
   end
 
   def decimal(value)

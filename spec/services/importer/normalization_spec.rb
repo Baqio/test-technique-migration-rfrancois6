@@ -53,4 +53,32 @@ RSpec.describe Importer::Normalization do
       expect(described_class.zip("   ")).to be_nil
     end
   end
+
+  describe ".country_code" do
+    it "keeps valid ISO codes unchanged" do
+      expect(described_class.country_code("FR")).to eq("FR")
+      expect(described_class.country_code("BE")).to eq("BE")
+      expect(described_class.country_code("DE")).to eq("DE")
+    end
+
+    it "translates French country names into ISO codes" do
+      expect(described_class.country_code("FRANCE")).to eq("FR")
+      expect(described_class.country_code("france")).to eq("FR")
+      expect(described_class.country_code("France ")).to eq("FR")
+      expect(described_class.country_code("fr")).to eq("FR")
+      expect(described_class.country_code("Allemagne")).to eq("DE")
+      expect(described_class.country_code("allemagne")).to eq("DE")
+      expect(described_class.country_code("Belgique")).to eq("BE")
+    end
+
+    it "returns nil for unknown country names" do
+      expect(described_class.country_code("Suisse")).to be_nil 
+    end
+
+    it "returns nil for nil/blank values" do
+      expect(described_class.country_code(nil)).to be_nil
+      expect(described_class.country_code("")).to be_nil
+      expect(described_class.country_code("   ")).to be_nil
+    end
+  end
 end
