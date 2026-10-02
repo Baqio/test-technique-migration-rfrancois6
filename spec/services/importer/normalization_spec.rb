@@ -81,4 +81,25 @@ RSpec.describe Importer::Normalization do
       expect(described_class.country_code("   ")).to be_nil
     end
   end
+
+  describe ".phone" do
+    it "returns nil for nil/blank values" do
+      expect(described_class.phone(nil)).to be_nil
+      expect(described_class.phone("")).to be_nil
+      expect(described_class.phone("   ")).to be_nil
+    end
+
+    it "treats N/C as a missing number" do
+      expect(described_class.phone("N/C")).to be_nil
+    end
+
+    it "keeps well-formed numbers unchanged" do
+      expect(described_class.phone("0123456789")).to eq("0123456789")
+      expect(described_class.phone("01.23.45.67.89")).to eq("01.23.45.67.89")
+    end
+
+    it "returns with initial 0" do
+      expect(described_class.phone(123456789)).to eq("0123456789")
+    end
+  end
 end

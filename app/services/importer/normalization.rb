@@ -21,7 +21,7 @@ module Importer::Normalization
   "BELGIQUE"  => "BE",
   "DE"        => "DE",
   "ALLEMAGNE" => "DE"
-}.freeze
+  }.freeze
 
   def country_code(value)
     return nil if value.blank?
@@ -34,5 +34,14 @@ module Importer::Normalization
     cleaned = value.to_s.gsub(/[^0-9,.-]/, "").gsub(",",".")
     return nil unless cleaned.match?(/\A-?\d+(\.\d+)?\z/)
     BigDecimal(cleaned)
+  end
+
+  def phone(value)
+    return nil if value.blank?
+
+    cleaned = value.to_s.strip
+    return nil if cleaned.upcase == "N/C"
+
+    cleaned.match?(/\A\d{9}\z/) ? "0#{cleaned}" : cleaned
   end
 end
