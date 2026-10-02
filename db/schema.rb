@@ -59,4 +59,19 @@ ActiveRecord::Schema.define do
 
     t.index %i[product_id grid_code], unique: true
   end
+
+  create_table :migration_records, force: :cascade do |t|
+    t.string  :source_file, null: false     # nom du fichier d'origine
+    t.integer :source_line, null: false     # numéro de ligne dans ce fichier
+    t.string  :source_key                   # référence lue dans la source
+    t.string  :status, null: false          # created / updated / rejected / imported_with_warning
+    t.string  :reason                       # motif du rejet ou de la réserve
+    t.string  :raw_value                    # valeur brute en cause
+    t.string  :record_type                  # Customer, Product, ProductPrice
+    t.integer :record_id                    # identifiant de l'enregistrement produit
+    t.timestamps
+
+    t.index %i[source_file source_line], unique: true
+    t.index :status
+  end
 end
