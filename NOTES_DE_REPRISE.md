@@ -7,6 +7,14 @@
 - Les numéros de téléphone sont complétés du zéro initial qu'Excel a supprimé en les stockant comme entiers, mais leur ponctuation est conservée telle que saisie. On répare, on ne réécrit pas.
 - Huit colonnes du fichier clients portent le même intitulé, une fois pour la facturation et une fois pour la livraison. Elles sont lues par position et non par nom, faute de quoi seule la seconde serait conservée.
 - Chaque ligne des fichiers source laisse une trace en base : son fichier, son numéro de ligne, la clé lue, ce qu'elle est devenue et pourquoi. La reprise peut ainsi être relancée sans doublon, et tout rejet reste justifiable après coup.
+- Les 982 revendeurs deviennent customer, avec une réserve tracée par ligne. Ils sont listés dans le rapport.
+- Si les colonnes de livraison contiennent quoi que ce soit, use_billing_address passe à false et on remplit ce qu'on a.
+- Les trois doublons exacts : la première ligne crée, la seconde met à jour, les deux sont tracées.
+- Inutilisable = 1 donne active = false.
+- Les trois clients sans identifiant sont rejetés avec motif.
+- contact@baqio.fake est traité comme une absence, chaque cas tracé.
+- customer_category reçoit le libellé de famille.
+- les numéros de TVA sont nettoyés de leurs espaces internes.
 
 ## Questions
 - 990 clients n'ont pas de pays renseigné. Importés sans pays. Faut-il les considérer comme français par défaut ?
