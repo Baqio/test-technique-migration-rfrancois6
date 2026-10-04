@@ -3,6 +3,5 @@ class MigrationRecord < ActiveRecord::Base
     created:  "created",
     updated:  "updated",
     rejected: "rejected",
-    warning:  "imported_with_warning"
   }.freeze
 end

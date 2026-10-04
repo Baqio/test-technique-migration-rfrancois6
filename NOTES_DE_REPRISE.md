@@ -23,3 +23,4 @@
 ## Constats
 - Le fichier tarifs annonce lui-même le nombre de produits par section (14, 16, 18, 22, 21, 22). Ces comptes sont lus et serviront de contrôle en fin de reprise.
 - Le fichier clients se termine par une ligne annonçant 5 000 tiers, alors qu'il contient 4 997 lignes dont trois doublons, soit 4 994 clients distincts. L'écart sera signalé en fin de reprise.
+- trois lignes du fichier n'ont ni raison sociale, ni nom, ni prénom. Elles ne sont pas reprises et figurent dans le rapport avec leur numéro de ligne.

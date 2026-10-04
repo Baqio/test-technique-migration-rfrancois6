@@ -45,7 +45,7 @@ class Customer::Import::CavegestMapper
       vat_number:        vat_number,
       excise_number:     @values[:excise_number],
       creation_date:     creation_date,
-      active:            @values[:unusable].blank?,
+      active:            active?,
 
       use_billing_address: shipping_values.empty?
     }.merge(shipping_attributes)
@@ -138,5 +138,9 @@ class Customer::Import::CavegestMapper
       message: "ni raison sociale, ni nom, ni prénom",
       raw_value: nil
     )
+  end
+
+  def active?
+    @values[:unusable] != 1
   end
 end

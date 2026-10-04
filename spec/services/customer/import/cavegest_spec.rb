@@ -18,8 +18,8 @@ RSpec.describe Customer::Import::Cavegest do
     expect(customer.shipping_zip).to eq("11100")
   end
 
-  it "imports every customer, merging exact duplicates" do
-    expect(Customer.count).to eq(4994)
+  it "imports every usable customer" do
+    expect(Customer.count).to eq(4991)
   end
 
   it "deactivates customers flagged as unusable in the source" do
