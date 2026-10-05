@@ -2,7 +2,6 @@ class ProductPrice::Import::CavegestMapper
   N = Importer::Normalization
 
   Result = Struct.new(:product_attributes, :prices, :errors, :warnings, keyword_init: true)
-  Issue  = Struct.new(:field, :message, :raw_value, keyword_init: true)
 
   GRID_CODES = %w[DEPC CHR EXPO PART SALON].freeze
 
@@ -17,7 +16,7 @@ class ProductPrice::Import::CavegestMapper
     @warnings = []
 
     if @values["Ref"].blank?
-      @errors << Issue.new(
+      @errors << Importer::Issue.new(
         field:     :reference,
         message:   "référence produit manquante",
         raw_value: @values["Ref"]
@@ -67,7 +66,7 @@ class ProductPrice::Import::CavegestMapper
 
     volume = contenant.match(/- (\d+\.\d+)/)
     unless volume 
-      @warnings << Issue.new(
+      @warnings << Importer::Issue.new(
         field:      :volume,
         message:    "mauvais format de volume",
         raw_value:  @values["Contenant"]
@@ -84,7 +83,7 @@ class ProductPrice::Import::CavegestMapper
     tva = N.decimal(@values["TVA"])
 
     if tva.blank?
-      @errors << Issue.new(
+      @errors << Importer::Issue.new(
         field:     :vat_rate,
         message:   "taux de TVA manquant",
         raw_value: @values["TVA"]

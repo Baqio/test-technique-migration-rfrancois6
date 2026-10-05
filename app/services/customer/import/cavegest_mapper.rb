@@ -1,7 +1,6 @@
 class Customer::Import::CavegestMapper
   N = Importer::Normalization
 
-  Issue  = Struct.new(:field, :message, :raw_value, keyword_init: true)
   Result = Struct.new(:attributes, :errors, :warnings, keyword_init: true)
 
   KINDS = {
@@ -57,7 +56,7 @@ class Customer::Import::CavegestMapper
 
   def email
     if @values[:email] == "contact@baqio.fake"
-      @warnings << Issue.new(
+      @warnings << Importer::Issue.new(
         field:     :email,
         message:   "email de remplissage supprimé",
         raw_value: @values[:email]
@@ -71,7 +70,7 @@ class Customer::Import::CavegestMapper
     code = @values[:family_code].to_s.strip
 
     if code == "R"
-      @warnings << Issue.new(
+      @warnings << Importer::Issue.new(
         field:     :family_code,
         message:   "revendeur importé comme client",
         raw_value: @values[:family_code]
@@ -79,7 +78,7 @@ class Customer::Import::CavegestMapper
     end
 
     unless KINDS.key?(code)
-      @errors << Issue.new(
+      @errors << Importer::Issue.new(
         field:     :family_code,
         message:   "code famille inconnu",
         raw_value: @values[:family_code]
@@ -133,7 +132,7 @@ class Customer::Import::CavegestMapper
   def check_identity
     return if @values.values_at(:company_name, :first_name, :last_name).any?(&:present?)
 
-    @errors << Issue.new(
+    @errors << Importer::Issue.new(
       field:   :company_name,
       message: "ni raison sociale, ni nom, ni prénom",
       raw_value: nil
