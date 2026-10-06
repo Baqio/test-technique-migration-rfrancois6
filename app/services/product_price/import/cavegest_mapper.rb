@@ -68,7 +68,7 @@ class ProductPrice::Import::CavegestMapper
     unless volume 
       @warnings << Importer::Issue.new(
         field:      :volume,
-        message:    "mauvais format de volume",
+        message:    "conditionnement donné à la place du contenant, volume non déterminé",
         raw_value:  @values["Contenant"]
       )
       return nil

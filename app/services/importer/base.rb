@@ -20,9 +20,8 @@ class Importer::Base
     reason    = issues.map(&:message).join(" ; ").presence
     raw_value = issues.map(&:raw_value).compact.join(" ; ").presence
 
-    MigrationRecord.create!(
-      source_file: source,
-      source_line: row.line_number,
+    migration = MigrationRecord.find_or_initialize_by(source_file: source, source_line: row.line_number)
+    migration.assign_attributes(
       source_key:  source_key,
       status:      status,
       reason:      reason,
@@ -30,13 +29,17 @@ class Importer::Base
       record_type: record&.class&.name,
       record_id:   record&.id
     )
+    migration.save!
 
     report.count(status)
+    report.count("#{source}|#{status}")
 
-    if status == "rejected"
-      report.error(source: source, locator: row.line_number, message: reason)
-    elsif reason
-      report.warn(source: source, locator: row.line_number, message: reason)
+    issues.each do |issue|
+      if status == "rejected"
+        report.error(source: source, locator: row.line_number, message: issue.message)
+      else
+        report.warn(source: source, locator: row.line_number, message: issue.message)
+      end
     end
   end
 

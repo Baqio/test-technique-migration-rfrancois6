@@ -36,6 +36,8 @@ class ProductPrice::Import::Cavegest < Importer::Base
 
     return trace(row, status: "rejected", source_key: row.values["Ref"], issues: result.errors ) if result.errors.any?
 
+    report.count(:prices_missing, ProductPrice::Import::CavegestMapper::GRID_CODES.size - result.prices.size)
+
     ActiveRecord::Base.transaction(requires_new: true) do
       product = Product.find_or_initialize_by(reference: result.product_attributes[:reference])
       status  = product.new_record? ? "created" : "updated"
