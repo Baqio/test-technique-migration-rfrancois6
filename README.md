@@ -1,3 +1,65 @@
+# Reprise CaveGest — rendu
+
+## Lancer le projet
+
+Prérequis : Ruby 3.3 et PostgreSQL.
+
+    bundle install
+    bundle exec rake db:setup      # crée la base et charge le schéma
+    bundle exec rake import:all    # lance la reprise et affiche le rapport
+    bundle exec rake import:audit  # contrôles de cohérence sur la base
+
+La base est définie par DATABASE_URL. En son absence, le projet utilise postgres://localhost:5432/baqio_migration, défini dans config/environment.rb. Selon la configuration locale de PostgreSQL, une connexion par socket peut être nécessaire :
+
+    export DATABASE_URL="postgres:///baqio_migration"
+
+db:setup supprime cette base si elle existe, la recrée et charge le schéma.
+
+Les tests :
+
+    bundle exec rspec
+
+Les specs tournent sur les fichiers réels de `data/`, pas sur un extrait :
+c'est précisément là que le code d'origine échouait.
+
+## Architecture
+
+La reprise est découpée en quatre rôles, dont les trois premiers se testent sans base de données.
+
+**Lecture** — `Importer::CavegestCustomerFile` et `Importer::CavegestTariffFile`
+connaissent le format de leur fichier : encodage, onglet, position de l'en-tête,
+lignes de structure à écarter. Elles rendent des lignes brutes accompagnées de
+leur numéro dans le fichier source, et ne transforment rien.
+
+**Normalisation** — `Importer::Normalization` convertit les valeurs : décimales
+à virgule, codes postaux, pays, téléphones. Fonctions pures, sans base ni
+fichier. Elles traduisent ou répondent qu'elles ne savent pas ; elles ne
+décident jamais du sort d'une ligne.
+
+**Traduction** — `Customer::Import::CavegestMapper` et son équivalent tarifs
+transforment une ligne source en attributs du schéma. C'est là que vivent les
+décisions métier, et ils rendent, avec les attributs, ce qu'ils ont dû refuser
+ou signaler.
+
+**Écriture** — les deux importeurs enchaînent lecture, traduction et
+persistance. Chaque ligne est écrite dans sa propre transaction et retrouvée
+par sa référence source, ce qui rend la reprise rejouable.
+
+## Ajout au schéma
+
+La table `migration_records` garde une ligne par ligne source : son fichier,
+son numéro de ligne, la clé lue, ce qu'elle est devenue et pourquoi. Elle
+permet à l'audit de travailler depuis la base, et de justifier un rejet des
+semaines après la reprise.
+
+## Décisions
+
+Les arbitrages sur les données figurent dans `NOTES_DE_REPRISE.md`.
+
+---
+
+# Énoncé d'origine
+
 # Test technique — Développeur·se Intégrations & Migration de données
 
 Merci de l'intérêt que vous portez au poste.
