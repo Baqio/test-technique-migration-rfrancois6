@@ -12,15 +12,11 @@ namespace :db do
     ActiveRecord::Base.connection.drop_database(name) rescue nil
     ActiveRecord::Base.connection.create_database(name)
     ActiveRecord::Base.establish_connection(config)
-
+    ActiveRecord::Migration.verbose = false
+    
     load File.join(APP_ROOT, "db", "schema.rb")
     puts "Base #{name} prête."
   end
-end
-
-namespace :import do
-  desc "Rejoue la reprise complète (tarifs, tiers, contrôles)"
-  task all: ["import:product_price:cavegest", "import:customer:cavegest", "import:report"]
 end
 
 task default: :spec

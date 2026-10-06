@@ -56,7 +56,9 @@ class Importer::Audit
   end
 
   def to_s
-    ([header] + [controls_section] + [figures_section] + [footer]).join("\n\n")
+    return "Aucune reprise n'a été effectuée sur cette base." if MigrationRecord.count.zero?
+
+    ([header, controls_section, figures_section, footer]).join("\n\n")
   end
 
   private
