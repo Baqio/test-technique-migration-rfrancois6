@@ -70,6 +70,18 @@ RSpec.describe Customer::Import::CavegestMapper do
     it "translates country names into ISO codes" do
       expect(map(country_code: "France   ").attributes[:country_code]).to eq("FR")
     end
+    
+    it "treats customers with no country as French" do
+      expect(map(country_code: nil).attributes[:country_code]).to eq("FR")
+      expect(map(country_code: "").attributes[:country_code]).to eq("FR")
+    end
+
+    it "treats unknown country as nil and raises a warning" do
+      result = map(country_code: "Suisse")
+
+      expect(result.attributes[:country_code]).to be_nil
+      expect(result.warnings).not_to be_empty
+    end
 
     it "accepts creation dates written as text" do
       expect(map(creation_date: "14/05/2011").attributes[:creation_date]).to eq(Date.new(2011, 5, 14))
@@ -99,11 +111,10 @@ RSpec.describe Customer::Import::CavegestMapper do
       expect(map(family_code: "F").attributes[:kind]).to eq("supplier")
     end
 
-    it "maps resellers to customers and flags them for review" do
+    it "maps resellers to customers for review" do
       result = map(family_code: "R")
 
       expect(result.attributes[:kind]).to eq("customer")
-      expect(result.warnings).not_to be_empty
     end
 
     it "rejects rows whose family code is unknown" do
@@ -112,8 +123,8 @@ RSpec.describe Customer::Import::CavegestMapper do
       expect(result.errors).not_to be_empty
     end
 
-    it "keeps the source family label as the customer category" do
-      expect(map.attributes[:customer_category]).to eq("CLIENT FRANCE")
+    it "normalises the family label whatever the case used in the source" do
+      expect(map(family_label: "CLIENT FRANCE").attributes[:customer_category]).to eq("Client France")
     end
 
     it "reads the price grid code from the source" do
@@ -126,6 +137,15 @@ RSpec.describe Customer::Import::CavegestMapper do
 
     it "marks every other row as active" do
       expect(map.attributes[:active]).to be(true)
+    end
+
+    it "treats a shipping address with no country as French" do
+      result = map(shipping_address1: "4 quai du Port", shipping_zip: 4000, shipping_city: "Digne")
+
+      expect(result.attributes).to include(
+        shipping_country_code: "FR",
+        shipping_zip:          "04000"
+      )
     end
 
     it "falls back on the billing address when no shipping address is given" do

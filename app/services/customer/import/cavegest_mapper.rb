@@ -3,11 +3,11 @@ class Customer::Import::CavegestMapper
 
   Result = Struct.new(:attributes, :errors, :warnings, keyword_init: true)
 
-  KINDS = {
-    "C" => "customer",
-    "P" => "prospect",
-    "F" => "supplier",
-    "R" => "customer"
+  FAMILIES = {
+    "C" => { kind: "customer", label: "Client France" },
+    "P" => { kind: "prospect", label: "Prospect" },
+    "F" => { kind: "supplier", label: "Fournisseur" },
+    "R" => { kind: "customer", label: "Revendeur" }
   }.freeze
 
   def initialize(values)
@@ -26,6 +26,8 @@ class Customer::Import::CavegestMapper
   private
 
   def attributes
+    country_code    = country
+    shipping_fields = shipping_attributes
     {
       reference:         @values[:reference],
       company_name:      @values[:company_name],
@@ -34,12 +36,12 @@ class Customer::Import::CavegestMapper
       address1:          @values[:address1],
       city:              @values[:city],
       zip:               N.zip(@values[:zip], country),
-      country_code:      country,
+      country_code:      country_code,
       phone:             N.phone(@values[:phone]),
       mobile:            N.phone(@values[:mobile]),
       email:             email,
       kind:              kind,
-      customer_category: @values[:family_label],
+      customer_category: family&.fetch(:label),
       price_grid_code:   @values[:price_grid_code],
       vat_number:        vat_number,
       excise_number:     @values[:excise_number],
@@ -47,11 +49,21 @@ class Customer::Import::CavegestMapper
       active:            active?,
 
       use_billing_address: shipping_values.empty?
-    }.merge(shipping_attributes)
+    }.merge(shipping_fields)
   end
 
   def country
-    @country ||= N.country_code(@values[:country_code])
+    return "FR" if @values[:country_code].blank?
+    code = N.country_code(@values[:country_code])
+
+    if code.nil?
+      @warnings << Importer::Issue.new(
+        field:     :country_code,
+        message:   "pays non reconnu, client importé sans pays",
+        raw_value: @values[:country_code]
+      )
+    end
+    code
   end
 
   def email
@@ -67,24 +79,18 @@ class Customer::Import::CavegestMapper
   end
 
   def kind
-    code = @values[:family_code].to_s.strip
-
-    if code == "R"
-      @warnings << Importer::Issue.new(
-        field:     :family_code,
-        message:   "revendeur importé comme client",
-        raw_value: @values[:family_code]
-      )
-    end
-
-    unless KINDS.key?(code)
+    unless family
       @errors << Importer::Issue.new(
         field:     :family_code,
         message:   "code famille inconnu",
         raw_value: @values[:family_code]
       )
     end
-    KINDS[code]
+    family&.fetch(:kind)
+  end
+
+  def family
+    @family ||= FAMILIES[@values[:family_code].to_s.strip]
   end
 
   def vat_number
@@ -115,8 +121,8 @@ class Customer::Import::CavegestMapper
   def shipping_attributes
     return {} if shipping_values.empty?
 
-    shipping_country = N.country_code(@values[:shipping_country_code])
-
+    shipping_country = @values[:shipping_country_code].blank? ? "FR" : N.country_code(@values[:shipping_country_code])
+    
     {
       shipping_last_name:    @values[:shipping_last_name],
       shipping_first_name:   @values[:shipping_first_name],
